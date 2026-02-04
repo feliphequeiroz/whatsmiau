@@ -20,6 +20,7 @@ RUN apk update && apk add --no-cache ffmpeg mailcap
 WORKDIR /app
 
 COPY --from=builder /app/whatsmiau /app/whatsmiau
+COPY --from=builder /app/static /app/static
 
 RUN mkdir /app/data && chmod 777 -R /app/data
 
