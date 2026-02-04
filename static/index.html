@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsMiau Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #0a0a0a;
+      color: #fff;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1200px;
+      margin: 0 auto 32px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #262626;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 24px;
+      font-weight: 600;
+    }
+    .config-bar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    .config-bar input {
+      padding: 10px 14px;
+      background: #141414;
+      border: 1px solid #262626;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 13px;
+      outline: none;
+      width: 280px;
+    }
+    .config-bar input:focus { border-color: #404040; }
+    .config-bar input::placeholder { color: #525252; }
+    .main {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    @media (max-width: 900px) {
+      .main { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: #141414;
+      border: 1px solid #262626;
+      border-radius: 12px;
+      padding: 24px;
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #a3a3a3;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 20px;
+    }
+    .field { margin-bottom: 16px; }
+    .field label {
+      display: block;
+      font-size: 12px;
+      color: #737373;
+      margin-bottom: 6px;
+    }
+    .field input, .field textarea {
+      width: 100%;
+      padding: 12px;
+      background: #0a0a0a;
+      border: 1px solid #262626;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+      resize: none;
+    }
+    .field input:focus, .field textarea:focus { border-color: #404040; }
+    .field input::placeholder, .field textarea::placeholder { color: #525252; }
+    button {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    button:hover { opacity: 0.9; }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-primary { background: #22c55e; color: #000; }
+    .btn-secondary { background: #262626; color: #fff; }
+    .btn-danger { background: #dc2626; color: #fff; }
+    .btn-sm { padding: 8px 12px; font-size: 12px; }
+    .btn-block { width: 100%; justify-content: center; }
+    .actions { display: flex; gap: 10px; margin-top: 20px; }
+    
+    /* QR Code */
+    .qr-area {
+      text-align: center;
+      padding: 20px;
+      background: #0a0a0a;
+      border-radius: 8px;
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .qr-area img {
+      max-width: 200px;
+      border-radius: 8px;
+      background: #fff;
+      padding: 12px;
+    }
+    .qr-area .placeholder {
+      color: #525252;
+      font-size: 13px;
+    }
+    .qr-label {
+      margin-top: 12px;
+      font-size: 12px;
+      color: #737373;
+    }
+
+    /* Status badge */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+    .badge-success { background: #14532d; color: #4ade80; }
+    .badge-success::before { background: #4ade80; }
+    .badge-error { background: #450a0a; color: #f87171; }
+    .badge-error::before { background: #f87171; }
+    .badge-warning { background: #422006; color: #fbbf24; }
+    .badge-warning::before { background: #fbbf24; }
+
+    /* Instances list */
+    .instances-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .instance-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      background: #0a0a0a;
+      border: 1px solid #262626;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .instance-item:hover { border-color: #404040; }
+    .instance-item.active { border-color: #22c55e; }
+    .instance-info { display: flex; flex-direction: column; gap: 4px; }
+    .instance-name { font-weight: 500; font-size: 14px; }
+    .instance-id { font-size: 12px; color: #737373; }
+    .instance-actions { display: flex; gap: 8px; }
+
+    /* Message area */
+    .right-column { display: flex; flex-direction: column; gap: 24px; }
+    
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 14px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s;
+      z-index: 100;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast-success { background: #14532d; color: #4ade80; }
+    .toast-error { background: #450a0a; color: #f87171; }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #525252;
+    }
+    .empty-state p { margin-top: 8px; font-size: 13px; }
+
+    /* Logs */
+    .logs {
+      background: #0a0a0a;
+      border-radius: 8px;
+      padding: 16px;
+      max-height: 200px;
+      overflow-y: auto;
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 12px;
+    }
+    .log-item { padding: 6px 0; border-bottom: 1px solid #1a1a1a; color: #a3a3a3; }
+    .log-item:last-child { border: none; }
+    .log-time { color: #525252; margin-right: 8px; }
+    .log-success { color: #4ade80; }
+    .log-error { color: #f87171; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="logo">🐱 WhatsMiau</div>
+    <div class="config-bar">
+      <input type="text" id="apiUrl" placeholder="URL da API" value="https://whatsmiau-production-f65a.up.railway.app">
+      <input type="password" id="apiKey" placeholder="API Key">
+      <button class="btn-secondary btn-sm" onclick="loadInstances()">Conectar</button>
+    </div>
+  </header>
+
+  <main class="main">
+    <aside>
+      <!-- Nova Instância -->
+      <div class="card" style="margin-bottom: 24px;">
+        <div class="card-title">Nova Instância</div>
+        <div class="field">
+          <label>Nome da Instância</label>
+          <input type="text" id="newInstanceName" placeholder="minha-instancia">
+        </div>
+        <button class="btn-primary btn-block" onclick="createInstance()">Criar Instância</button>
+      </div>
+
+      <!-- Lista de Instâncias -->
+      <div class="card">
+        <div class="card-title">Instâncias</div>
+        <div id="instancesList" class="instances-list">
+          <div class="empty-state">
+            <p>Nenhuma instância</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="right-column">
+      <!-- Conexão / QR Code -->
+      <div class="card">
+        <div class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
+          <span>Conexão</span>
+          <span id="connectionStatus"></span>
+        </div>
+        <div id="selectedInstance" style="margin-bottom: 16px; color: #737373; font-size: 13px;">
+          Selecione uma instância
+        </div>
+        <div class="qr-area" id="qrArea">
+          <p class="placeholder">QR Code aparecerá aqui</p>
+        </div>
+        <div class="actions">
+          <button class="btn-secondary" onclick="checkStatus()" id="btnStatus" disabled>Verificar Status</button>
+          <button class="btn-primary" onclick="connectInstance()" id="btnConnect" disabled>Gerar QR Code</button>
+          <button class="btn-danger btn-sm" onclick="disconnectInstance()" id="btnDisconnect" disabled>Desconectar</button>
+        </div>
+      </div>
+
+      <!-- Enviar Mensagem -->
+      <div class="card">
+        <div class="card-title">Enviar Mensagem</div>
+        <div class="field">
+          <label>Número (com DDI + DDD)</label>
+          <input type="text" id="sendNumber" placeholder="5511999999999">
+        </div>
+        <div class="field">
+          <label>Mensagem</label>
+          <textarea id="sendText" rows="3" placeholder="Digite sua mensagem..."></textarea>
+        </div>
+        <button class="btn-primary btn-block" onclick="sendMessage()" id="btnSend" disabled>Enviar Mensagem</button>
+      </div>
+
+      <!-- Logs -->
+      <div class="card">
+        <div class="card-title">Logs</div>
+        <div class="logs" id="logs">
+          <div class="log-item"><span class="log-time">--:--:--</span> Aguardando conexão...</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    let currentInstance = null;
+
+    function getConfig() {
+      return {
+        apiUrl: document.getElementById('apiUrl').value.replace(/\/$/, ''),
+        apiKey: document.getElementById('apiKey').value
+      };
+    }
+
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = `toast toast-${type} show`;
+      setTimeout(() => toast.className = 'toast', 3000);
+    }
+
+    function addLog(message, type = '') {
+      const logs = document.getElementById('logs');
+      const time = new Date().toLocaleTimeString('pt-BR');
+      const item = document.createElement('div');
+      item.className = 'log-item';
+      item.innerHTML = `<span class="log-time">${time}</span><span class="log-${type}">${message}</span>`;
+      logs.insertBefore(item, logs.firstChild);
+    }
+
+    function updateButtons(enabled) {
+      document.getElementById('btnStatus').disabled = !enabled;
+      document.getElementById('btnConnect').disabled = !enabled;
+      document.getElementById('btnDisconnect').disabled = !enabled;
+      document.getElementById('btnSend').disabled = !enabled;
+    }
+
+    function selectInstance(name) {
+      currentInstance = name;
+      document.getElementById('selectedInstance').textContent = `Instância: ${name}`;
+      document.querySelectorAll('.instance-item').forEach(el => {
+        el.classList.toggle('active', el.dataset.name === name);
+      });
+      updateButtons(true);
+      addLog(`Instância "${name}" selecionada`);
+      checkStatus();
+    }
+
+    async function loadInstances() {
+      const { apiUrl, apiKey } = getConfig();
+      if (!apiUrl || !apiKey) {
+        showToast('Preencha URL e API Key', 'error');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${apiUrl}/v1/instance/fetchInstances`, {
+          headers: { 'apikey': apiKey }
+        });
+        const data = await response.json();
+        
+        const list = document.getElementById('instancesList');
+        
+        if (!data || data.length === 0) {
+          list.innerHTML = '<div class="empty-state"><p>Nenhuma instância criada</p></div>';
+          addLog('Conectado - Nenhuma instância encontrada');
+          return;
+        }
+
+        list.innerHTML = data.map(inst => `
+          <div class="instance-item" data-name="${inst.id || inst.instanceName}" onclick="selectInstance('${inst.id || inst.instanceName}')">
+            <div class="instance-info">
+              <span class="instance-name">${inst.id || inst.instanceName}</span>
+            </div>
+          </div>
+        `).join('');
+
+        addLog(`${data.length} instância(s) carregada(s)`, 'success');
+        showToast('Instâncias carregadas');
+      } catch (error) {
+        showToast('Erro ao carregar: ' + error.message, 'error');
+        addLog('Erro: ' + error.message, 'error');
+      }
+    }
+
+    async function createInstance() {
+      const { apiUrl, apiKey } = getConfig();
+      const instanceName = document.getElementById('newInstanceName').value;
+
+      if (!apiUrl || !apiKey || !instanceName) {
+        showToast('Preencha todos os campos', 'error');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${apiUrl}/v1/instance/create`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': apiKey
+          },
+          body: JSON.stringify({ instanceName })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          showToast(`Instância "${instanceName}" criada!`);
+          addLog(`Instância "${instanceName}" criada`, 'success');
+          document.getElementById('newInstanceName').value = '';
+          loadInstances();
+        } else {
+          showToast(data.message || 'Erro ao criar', 'error');
+        }
+      } catch (error) {
+        showToast('Erro: ' + error.message, 'error');
+        addLog('Erro: ' + error.message, 'error');
+      }
+    }
+
+    async function checkStatus() {
+      if (!currentInstance) return;
+      const { apiUrl, apiKey } = getConfig();
+
+      try {
+        const response = await fetch(`${apiUrl}/v1/instance/connectionState/${currentInstance}`, {
+          headers: { 'apikey': apiKey }
+        });
+        const data = await response.json();
+
+        const statusEl = document.getElementById('connectionStatus');
+        const state = data.state || data.status || 'unknown';
+
+        if (state === 'open' || state === 'connected') {
+          statusEl.innerHTML = '<span class="badge badge-success">Conectado</span>';
+          addLog('Status: Conectado', 'success');
+        } else if (state === 'close' || state === 'disconnected') {
+          statusEl.innerHTML = '<span class="badge badge-error">Desconectado</span>';
+          addLog('Status: Desconectado');
+        } else {
+          statusEl.innerHTML = `<span class="badge badge-warning">${state}</span>`;
+          addLog(`Status: ${state}`);
+        }
+      } catch (error) {
+        addLog('Erro ao verificar status', 'error');
+      }
+    }
+
+    async function connectInstance() {
+      if (!currentInstance) return;
+      const { apiUrl, apiKey } = getConfig();
+
+      addLog('Gerando QR Code...');
+      document.getElementById('qrArea').innerHTML = '<p class="placeholder">Carregando...</p>';
+
+      try {
+        const response = await fetch(`${apiUrl}/v1/instance/connect/${currentInstance}`, {
+          headers: { 'apikey': apiKey }
+        });
+        const data = await response.json();
+
+        if (data.base64) {
+          document.getElementById('qrArea').innerHTML = `
+            <img src="${data.base64}" alt="QR Code">
+            <p class="qr-label">Escaneie com o WhatsApp</p>
+          `;
+          addLog('QR Code gerado - Escaneie agora', 'success');
+          showToast('QR Code gerado!');
+        } else {
+          document.getElementById('qrArea').innerHTML = '<p class="placeholder">Já conectado ou erro</p>';
+          addLog(data.message || 'Instância já conectada');
+          checkStatus();
+        }
+      } catch (error) {
+        showToast('Erro: ' + error.message, 'error');
+        addLog('Erro: ' + error.message, 'error');
+      }
+    }
+
+    async function disconnectInstance() {
+      if (!currentInstance) return;
+      const { apiUrl, apiKey } = getConfig();
+
+      try {
+        await fetch(`${apiUrl}/v1/instance/logout/${currentInstance}`, {
+          method: 'DELETE',
+          headers: { 'apikey': apiKey }
+        });
+        showToast('Desconectado');
+        addLog('Instância desconectada', 'success');
+        document.getElementById('connectionStatus').innerHTML = '<span class="badge badge-error">Desconectado</span>';
+        document.getElementById('qrArea').innerHTML = '<p class="placeholder">QR Code aparecerá aqui</p>';
+      } catch (error) {
+        showToast('Erro: ' + error.message, 'error');
+      }
+    }
+
+    async function sendMessage() {
+      if (!currentInstance) return;
+      const { apiUrl, apiKey } = getConfig();
+      const number = document.getElementById('sendNumber').value;
+      const text = document.getElementById('sendText').value;
+
+      if (!number || !text) {
+        showToast('Preencha número e mensagem', 'error');
+        return;
+      }
+
+      addLog(`Enviando para ${number}...`);
+
+      try {
+        const response = await fetch(`${apiUrl}/v1/message/sendText/${currentInstance}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': apiKey
+          },
+          body: JSON.stringify({ number, text })
+        });
+
+        const data = await response.json();
+
+        if (data.key || data.status === 'sent') {
+          showToast('Mensagem enviada!');
+          addLog(`Mensagem enviada para ${number}`, 'success');
+          document.getElementById('sendText').value = '';
+        } else {
+          showToast(data.message || 'Erro ao enviar', 'error');
+          addLog('Erro: ' + (data.message || 'Falha no envio'), 'error');
+        }
+      } catch (error) {
+        showToast('Erro: ' + error.message, 'error');
+        addLog('Erro: ' + error.message, 'error');
+      }
+    }
+  </script>
+</body>
+</html>
