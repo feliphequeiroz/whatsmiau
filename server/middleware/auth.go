@@ -2,21 +2,25 @@ package middleware
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/verbeux-ai/whatsmiau/env"
 )
 
 func Auth(ctx echo.Context, next echo.HandlerFunc) error {
+	// Skip auth for static files
+	if strings.HasPrefix(ctx.Request().URL.Path, "/app") {
+		return next(ctx)
+	}
+
 	gotApikey := ctx.Request().Header.Get("apikey")
 	if len(env.Env.ApiKey) == 0 {
 		return next(ctx)
 	}
-
 	if gotApikey != env.Env.ApiKey {
 		return echo.NewHTTPError(http.StatusUnauthorized)
 	}
-
 	return next(ctx)
 }
 
