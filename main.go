@@ -33,6 +33,7 @@ func main() {
 	app.Pre(middleware.Recover())
 	app.Pre(middleware.RemoveTrailingSlash())
 	app.Pre(middleware.CORS())
+	app.Static("/", "static")
 
 	routes.Load(app)
 
